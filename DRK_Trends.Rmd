@@ -1,5 +1,6 @@
 ---
-title: "Analysis // dontretirekid trends"
+title: "Analysis // #dontretirekid trends"
+author: "Phil Walker"
 output:
   html_document:
     df_print: paged
@@ -7,8 +8,8 @@ output:
     toc: true
     toc_float: true
     theme: spacelab
-    # includes:
-    #   after_body: footer.html
+    includes:
+      after_body: footer.html
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 editor_options: 
   chunk_output_type: console
@@ -33,8 +34,18 @@ library(tidyverse)
 # Overview
 The hashtag "#dontretirekid" was part of the [Aspen Institute's media program](https://www.aspenprojectplay.org/dont-retire-kid) as part of the larger Project Play initiative to help promote youth sports.
 
-We would like to be able to capture all of the tweets related to this hashtag to better understand the breadth of the 
+We would like to be able to capture all of the tweets related to this hashtag to better understand the breadth of the expoure. Ideally, this data could then be used to assess how effective it was, or what areas it resonated with 
 
+Below is an example of the ads that helped to spread this message out to sport consumers. 
+
+<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/TInFe337gZQ" frameborder="0" allowfullscreen></iframe> -->
+
+<div align="center">
+   <iframe width="560" height="315" src="https://www.youtube.com/embed/TInFe337gZQ" frameborder="0" allowfullscreen>
+   </iframe>
+</div>
+
+These ads are mean
 
 # Gather Data
 
@@ -67,7 +78,6 @@ LastDontRetire <- max(dontRetire_AIS$created_at)
 
 ```
 
-
 The campaign looks like it started at __`r FirstDontRetire`__ with the last tagged tweet from the Aspen Institute coming at __`r LastDontRetire`__
 
 ```{r, fig.width=12, out.width="100%"}
@@ -84,6 +94,56 @@ tl_AspendIn %>%
     labs(title = "Weekly Trend of #DontRetireKid Prevalence",
          x = NULL, y= "Count of Tweets")
 ```
+
+
+Network graph of recent interactions with #dontretirekid
+
+```{r, fig.width=12, out.width="100%"}
+## search for #rstats tweets
+drk <- search_tweets("#dontretirekid", n = 200)
+
+## create from-to data frame representing retweet/mention/reply connections
+drk_net_data <- network_data(drk, "retweet,mention,reply")
+
+## if igraph is installed...
+if (requireNamespace("igraph", quietly = TRUE)) {
+  
+  ## (1) convert directly to graph object representing semantic network
+  drk_net <- network_graph(drk)
+  
+  ## (2) plot graph via igraph.plotting
+  plot(drk_net)
+}
+```
+
+
+
+Try to get the people who retweeted Aspen's tweets
+
+```{r, echo=F, eval=F}
+SampleID <- c("1237793396837810179")
+
+get_retweeters(status_id = SampleID, n=10)
+
+
+```
+
+
+
+```{r, echo=F, eval=F}
+
+exmpl <- tl_AspendIn %>% 
+  filter(str_detect(text, "Please, coaches: ")) %>% 
+  pull(status_id)
+
+
+get_retweeters(status_id = exmpl, n=10)
+
+
+```
+
+
+
 
 
 ```{r, eval=F}
