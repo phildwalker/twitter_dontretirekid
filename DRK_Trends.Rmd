@@ -1,0 +1,135 @@
+---
+title: "Analysis // dontretirekid trends"
+output:
+  html_document:
+    df_print: paged
+    code_folding: hide
+    toc: true
+    toc_float: true
+    theme: spacelab
+    # includes:
+    #   after_body: footer.html
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{css, echo=FALSE}
+body .main-container {
+  max-width: 100% !important;
+  width: 100% !important;
+    }
+body {
+  max-width: 100% !important;
+    }
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rtweet)
+library(tidyverse)
+```
+
+# Overview
+The hashtag "#dontretirekid" was part of the [Aspen Institute's media program](https://www.aspenprojectplay.org/dont-retire-kid) as part of the larger Project Play initiative to help promote youth sports.
+
+We would like to be able to capture all of the tweets related to this hashtag to better understand the breadth of the 
+
+
+# Gather Data
+
+## Twitter
+
+Starting with all tweets from the Aspen Institute timeline
+```{r}
+
+tl_AspendIn <- 
+  get_timeline("AspenInstSports", n = 5200) %>% 
+  select(status_id, reply_to_status_id, created_at, screen_name, reply_to_screen_name, mentions_screen_name,
+         text, source, hashtags, urls_expanded_url, media_url,
+         geo_coords, country, location,
+         account_created_at, followers_count, friends_count)
+
+tl_AspendIn %>% 
+  select(hashtags) %>% 
+  unnest(cols = c(hashtags)) %>% 
+  count(hashtags, sort = TRUE) %>% 
+  DT::datatable()
+
+
+dontRetire_AIS <- 
+  tl_AspendIn %>% 
+  filter(str_detect(text, regex("#dontretirekid", ignore_case = TRUE)))
+
+FirstDontRetire <- min(dontRetire_AIS$created_at)
+LastDontRetire <- max(dontRetire_AIS$created_at)
+
+
+```
+
+
+The campaign looks like it started at __`r FirstDontRetire`__ with the last tagged tweet from the Aspen Institute coming at __`r LastDontRetire`__
+
+```{r, fig.width=12, out.width="100%"}
+tl_AspendIn %>% 
+  unnest(cols = c(hashtags)) %>% 
+  mutate(tweetDT = as.Date(created_at),
+         DontRetire = str_detect(text, regex("#dontretirekid", ignore_case = TRUE)),
+         tweetWK = lubridate::floor_date(tweetDT, "weeks")) %>% 
+  count(tweetWK, DontRetire) %>% 
+  ggplot(aes(tweetWK, n, color=DontRetire))+
+    geom_point()+
+    geom_line()+
+    theme_bw()+
+    labs(title = "Weekly Trend of #DontRetireKid Prevalence",
+         x = NULL, y= "Count of Tweets")
+```
+
+
+```{r, eval=F}
+data <- 
+  unq_users %>%
+  map(function(x) get_timeline(x, n = 1000)) %>%    # read in all the files individually
+  reduce(rbind)  %>%       # reduce with rbind into one dataframe
+  mutate(Year = lubridate::year(as.Date(created_at))) %>% 
+  filter(Year == 2020,
+         created_at >= FirstPrmt$MinDt) %>% 
+  # filter(str_detect(text, regex("#dontretirekid", ignore_case = TRUE)))
+  ungroup() %>% 
+  select(status_id, reply_to_status_id, created_at, screen_name, reply_to_screen_name, mentions_screen_name,
+         text, source, hashtags, urls_expanded_url, media_url,
+         geo_coords, country, location,
+         account_created_at, followers_count, friends_count)
+
+```
+
+## Gathering Participatation 
+
+
+
+
+## Sport Participation
+
+Not sure where we would gather the data from, but the goal would be to see if we could produce some level of causal inference test to see if the larger Project Play 
+
+
+# Analysis
+
+It might be interesting to do a sentiment analysis on the responses to the Don't Retire Kid tweets. 
+```{r}
+
+```
+
+
+
+# Trends
+
+
+
+
+
+
+
+
+
+
