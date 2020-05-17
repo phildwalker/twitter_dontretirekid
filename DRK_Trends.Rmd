@@ -105,15 +105,45 @@ drk <- search_tweets("#dontretirekid", n = 200)
 ## create from-to data frame representing retweet/mention/reply connections
 drk_net_data <- network_data(drk, "retweet,mention,reply")
 
-## if igraph is installed...
-if (requireNamespace("igraph", quietly = TRUE)) {
-  
-  ## (1) convert directly to graph object representing semantic network
-  drk_net <- network_graph(drk)
-  
-  ## (2) plot graph via igraph.plotting
-  plot(drk_net)
-}
+drk_net <- network_graph(drk)
+plot(drk_net)
+
+library(tidygraph)
+library(ggraph)
+
+drk_tidy <- 
+  drk_net_data %>% 
+  as_tbl_graph()
+
+drk_tidy <- drk_tidy %>%
+  activate(nodes) %>%
+  mutate(
+    username = lookup_users(name) %>% pull(screen_name),
+    importance = centrality_betweenness()
+    )
+
+drk_tidy
+
+
+  thm <- theme_minimal() +
+  theme(
+    # legend.position = "none",
+     axis.title = element_blank(),
+     axis.text = element_blank(),
+     panel.grid = element_blank(),
+     panel.grid.major = element_blank()
+  ) 
+
+theme_set(thm)
+
+drk_tidy %>%
+  ggraph(layout = "kk") +
+    geom_node_text(aes(label = username, color=importance), size = 3) +
+    geom_edge_diagonal(color = "gray30", alpha = 0.3, arrow = arrow(type = "closed", length = unit(.3, "cm"))) +
+    labs(title = "Network graph of users interacting with Don't Retire Kid",
+         subtitle = glue::glue("As run on {Sys.Date()}"))
+
+
 ```
 
 
@@ -179,11 +209,6 @@ It might be interesting to do a sentiment analysis on the responses to the Don't
 ```{r}
 
 ```
-
-
-
-# Trends
-
 
 
 
